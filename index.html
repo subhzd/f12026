@@ -867,6 +867,35 @@
             // Hash Routing Initialization
             window.addEventListener('hashchange', handleHashChange);
             handleHashChange(); // Load initial based on URL hash
+
+            // === Keyboard Navigation for Tabs ===
+            document.addEventListener('keydown', (e) => {
+                // Intercept Right/Left Arrows and Tab key
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === 'Tab') {
+                    const tabs = Array.from(document.querySelectorAll('.gp-tab'));
+                    const currentIndex = tabs.findIndex(tab => tab.classList.contains('active-tab'));
+                    
+                    if (currentIndex !== -1) {
+                        e.preventDefault(); // Prevent default window scrolling or standard tab focusing
+                        
+                        let nextIndex;
+                        if (e.key === 'ArrowRight' || (e.key === 'Tab' && !e.shiftKey)) {
+                            // Move to next tab, wrap around to the beginning if at the end
+                            nextIndex = (currentIndex + 1) % tabs.length;
+                        } else if (e.key === 'ArrowLeft' || (e.key === 'Tab' && e.shiftKey)) {
+                            // Move to previous tab, wrap around to the end if at the beginning
+                            nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+                        }
+                        
+                        if (nextIndex !== undefined) {
+                            const nextGpId = tabs[nextIndex].getAttribute('data-target');
+                            selectTab(nextGpId);
+                            // Smoothly scroll the horizontal tab container to keep active tab visible
+                            tabs[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                        }
+                    }
+                }
+            });
         });
         
         // === URL Hash Routing & Navigation Function ===
@@ -1437,9 +1466,8 @@
             update();
         }
     </script>
-
     <script>window.va=window.va||function(){(window.va.q=window.va.q||[]).push(arguments)};</script><script src="/_vercel/insights/script.js"></script>
 	<script>window.si=window.si||function(){(window.siq=window.siq||[]).push(arguments)};</script><script src="/_vercel/speed-insights/script.js"></script>	
-    
+
 </body>
 </html>
