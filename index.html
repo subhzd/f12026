@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>F1 🏎️ 2026 R1-R6</title>
+    <meta name="title" content="F1 2026 R1-R6 Dashboard">
+    <meta name="description" content="Explore historical KPI's, interactive circuit maps, and live countdowns for the first 6 rounds of the 2026 F1 season.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="#">
+    <meta property="og:title" content="F1 2026 R1-R6 Dashboard">
+    <meta property="og:description" content="Explore historical KPI's, interactive circuit maps, and live countdowns for the first 6 rounds of the 2026 F1 season.">
+    <meta property="og:image" content="f1_og.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="#">
+    <meta property="twitter:title" content="F1 2026 R1-R6 Dashboard">
+    <meta property="twitter:description" content="Explore historical KPI's, interactive circuit maps, and live countdowns for the first 6 rounds of the 2026 F1 season.">
+    <meta property="twitter:image" content="f1_og.png">
+
+    <!-- Custom App Icon -->
+    <link rel="icon" href="f1.png">
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Titillium Web (Matches official F1 font closely) -->
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,300;0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Tailwind Config injected for custom F1 thematic colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        f1: {
+                            red: '#E10600',
+                            dark: '#15151E',
+                            card: '#1F1F27',
+                            gray: '#38383f',
+                            text: '#f3f3f3'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Titillium Web"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #15151E;
+            color: #f3f3f3;
+            scroll-behavior: smooth;
+            /* Subtle radial gradient for depth */
+            background-image: radial-gradient(circle at top right, #2a1f24 0%, #15151e 40%);
+        }
+        /* F1-style angled card cutouts */
+        .f1-card {
+            background-color: #1F1F27;
+            border-right: 2px solid #38383f;
+            border-bottom: 2px solid #38383f;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+        }
+        .f1-card:hover {
+            transform: translateY(-5px);
+            border-color: #E10600;
+        }
+        .f1-border-top {
+            border-top: 4px solid #E10600;
+        }
+        .stat-value {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #fff;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: #a0a0a5;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        /* Custom F1 themed scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #15151E; }
+        ::-webkit-scrollbar-thumb { background: #E10600; border-radius: 4px; }
+        
+        /* Utility to hide scrollbar for horizontal tab lists but keep functionality */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col relative">
+
+    <!-- Track Image Full Screen Modal -->
+    <div id="track-modal" class="fixed inset-0 z-[100] bg-black/95 hidden flex flex-col items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300" onclick="closeModal()">
+        <button class="absolute top-6 right-8 text-white text-4xl hover:text-f1-red transition z-50">&times;</button>
+        <h3 id="modal-title" class="text-3xl font-bold uppercase tracking-widest text-f1-red mb-6 drop-shadow-lg text-center px-4">Circuit Layout</h3>
+        <img id="modal-img" src="" class="max-w-[90vw] max-h-[75vh] object-contain drop-shadow-[0_0_40px_rgba(255,255,255,0.2)]" onclick="event.stopPropagation()">
+    </div>
+
+    <!-- Top Navigation with Two-Tier Layout -->
+    <nav class="border-b border-f1-gray bg-f1-dark/90 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-4 flex flex-col gap-3 md:gap-4">
+            <!-- Top Row: App Logo & Name -->
+            <div class="flex items-center gap-4 shrink-0">
+                <!-- App Icon size increased by 1.5x (h-[72px]) -->
+                <img src="f1.png" alt="F1 App Icon" class="h-14 md:h-[72px] w-auto object-contain">
+                <span class="font-black text-2xl md:text-3xl tracking-wider">F1 2026 <span class="font-light">R1-R6</span></span>
+            </div>
+            <!-- Bottom Row: Scrollable Tab Navigation -->
+            <div class="w-full flex overflow-x-auto hide-scrollbar space-x-2 md:space-x-3 text-xs md:text-sm font-semibold tracking-wide uppercase items-center pb-1">
+                <button onclick="selectTab('australia', this)" class="gp-tab active-tab bg-f1-red text-white px-3 py-2 md:px-4 rounded-md shadow-lg transition whitespace-nowrap">R1: AUS <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Mar 6-8)</span></button>
+                <button onclick="selectTab('china', this)" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R2: CHN <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Mar 13-15)</span></button>
+                <button onclick="selectTab('japan', this)" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R3: JPN <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Mar 27-29)</span></button>
+                <button onclick="selectTab('bahrain', this)" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R4: BHR <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Apr 10-12)</span></button>
+                <button onclick="selectTab('saudi', this)" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R5: SAU <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Apr 17-19)</span></button>
+                <button onclick="selectTab('miami', this)" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R6: MIA <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(May 1-3)</span></button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 w-full">
+        <!-- Hero & Countdown Section -->
+        <section class="relative flex flex-col lg:flex-row items-start lg:items-center justify-between rounded-2xl overflow-hidden mb-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-f1-gray group min-h-[auto] lg:min-h-[450px]">
+            <!-- Dynamic Background Image -->
+            <div id="hero-bg" class="absolute inset-0 bg-cover bg-center transition-all duration-1000 group-hover:scale-105 opacity-40 group-hover:opacity-60 z-0"></div>
+            
+            <!-- Sleek Gradient Overlay -->
+            <div class="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-f1-dark via-f1-dark/90 to-transparent z-10 pointer-events-none"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-f1-dark via-transparent to-transparent z-10 pointer-events-none"></div>
+            
+            <div class="p-6 md:p-8 lg:p-12 w-full lg:w-2/3 relative z-20 flex flex-col justify-center">
+                <div id="hero-round" class="inline-block px-3 py-1 bg-white text-black font-bold text-xs rounded mb-4 tracking-widest uppercase shadow-lg shadow-white/10 w-max">Round 1</div>
+                <h1 id="hero-title" class="text-4xl md:text-5xl lg:text-7xl font-black italic mb-2 tracking-tight uppercase drop-shadow-2xl text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 leading-tight">Australian Grand Prix</h1>
+                <p id="hero-loc" class="text-lg md:text-xl text-gray-300 font-semibold mb-6 drop-shadow-md">Albert Park, Melbourne &bull; 06 - 08 MAR 2026</p>
+                
+                <!-- Time & Dynamic Car Emoji Container (Responsive flexbox) -->
+                <div class="flex flex-col sm:flex-row items-center sm:items-end gap-6 md:gap-8 text-center relative z-20 mt-4">
+                    <div class="flex flex-wrap justify-center sm:justify-start gap-2 md:gap-4">
+                        <div class="glass-panel px-4 py-3 md:px-5 md:py-4 rounded-xl min-w-[75px] md:min-w-[90px]">
+                            <div id="cd-days" class="text-3xl md:text-4xl font-black text-f1-red drop-shadow-md">00</div>
+                            <div class="text-[10px] md:text-xs text-gray-300 uppercase tracking-widest mt-1 font-semibold">Days</div>
+                        </div>
+                        <div class="glass-panel px-4 py-3 md:px-5 md:py-4 rounded-xl min-w-[75px] md:min-w-[90px]">
+                            <div id="cd-hours" class="text-3xl md:text-4xl font-black text-white drop-shadow-md">00</div>
+                            <div class="text-[10px] md:text-xs text-gray-300 uppercase tracking-widest mt-1 font-semibold">Hrs</div>
+                        </div>
+                        <div class="glass-panel px-4 py-3 md:px-5 md:py-4 rounded-xl min-w-[75px] md:min-w-[90px]">
+                            <div id="cd-minutes" class="text-3xl md:text-4xl font-black text-white drop-shadow-md">00</div>
+                            <div class="text-[10px] md:text-xs text-gray-300 uppercase tracking-widest mt-1 font-semibold">Mins</div>
+                        </div>
+                        <div class="glass-panel px-4 py-3 md:px-5 md:py-4 rounded-xl min-w-[75px] md:min-w-[90px]">
+                            <div id="cd-seconds" class="text-3xl md:text-4xl font-black text-white drop-shadow-md">00</div>
+                            <div class="text-[10px] md:text-xs text-gray-300 uppercase tracking-widest mt-1 font-semibold">Secs</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Car Emoji: Scaled 2x and flipped to point right -->
+                    <div id="hero-car-emoji" class="text-[6rem] md:text-[7.5rem] leading-none drop-shadow-lg transition-all duration-1000 -scale-x-100 transform" style="filter: hue-rotate(0deg);">🏎️</div>
+                </div>
+            </div>
+            
+            <!-- High-Tech Track Image Container (Visible on mobile properly beneath text, absolute on desktop) -->
+            <div id="hero-track-container" class="flex flex-col w-full lg:w-1/3 relative lg:absolute lg:right-10 lg:top-1/2 lg:-translate-y-1/2 items-center justify-center p-6 lg:p-8 opacity-90 z-20 drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] cursor-pointer hover:scale-105 transition-transform duration-300" onclick="openModal()" title="Click to expand circuit">
+                <span class="text-xs font-bold uppercase tracking-widest text-f1-red mb-4 bg-black/50 px-3 py-1.5 rounded backdrop-blur-sm animate-pulse"><i class="fa-solid fa-magnifying-glass mr-1"></i> Expand Circuit</span>
+                <div id="track-img-wrapper" class="w-full flex justify-center"></div>
+            </div>
+        </section>
+
+        <h2 class="text-2xl font-bold mb-6 border-l-4 border-f1-red pl-3 uppercase tracking-wide">Historical Circuit KPI's</h2>
+
+        <!-- Dashboard KPI Grid -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10">
+            <div class="f1-card p-5 md:p-6 relative overflow-hidden group">
+                <i class="fa-solid fa-road absolute -right-4 -bottom-4 text-5xl md:text-6xl text-white/5 group-hover:text-white/10 transition"></i>
+                <div class="stat-label">Circuit Length</div>
+                <div id="kpi-length" class="stat-value mt-2">-</div>
+                <div id="kpi-length-sub" class="text-sm text-gray-400 mt-1">-</div>
+            </div>
+            
+            <div class="f1-card p-5 md:p-6 relative overflow-hidden group">
+                <i class="fa-solid fa-flag-checkered absolute -right-4 -bottom-4 text-5xl md:text-6xl text-white/5 group-hover:text-white/10 transition"></i>
+                <div class="stat-label">Race Distance</div>
+                <div id="kpi-dist" class="stat-value mt-2">-</div>
+                <div id="kpi-dist-sub" class="text-sm text-gray-400 mt-1">-</div>
+            </div>
+
+            <div class="f1-card p-5 md:p-6 relative overflow-hidden group">
+                <i class="fa-solid fa-stopwatch absolute -right-4 -bottom-4 text-5xl md:text-6xl text-white/5 group-hover:text-white/10 transition"></i>
+                <div class="stat-label">Race Lap Record</div>
+                <div id="kpi-lap-rec" class="stat-value mt-2">-</div>
+                <div id="kpi-lap-rec-sub" class="text-sm text-gray-400 mt-1">-</div>
+            </div>
+
+            <div class="f1-card p-5 md:p-6 relative overflow-hidden group">
+                <i class="fa-solid fa-bolt absolute -right-4 -bottom-4 text-5xl md:text-6xl text-white/5 group-hover:text-white/10 transition"></i>
+                <div class="stat-label">Qualifying Record</div>
+                <div id="kpi-qual-rec" class="stat-value mt-2 text-f1-red">-</div>
+                <div id="kpi-qual-rec-sub" class="text-sm text-gray-400 mt-1">-</div>
+            </div>
+
+            <div class="f1-card p-5 md:p-6 relative overflow-hidden group">
+                <i class="fa-solid fa-trophy absolute -right-4 -bottom-4 text-5xl md:text-6xl text-white/5 group-hover:text-white/10 transition"></i>
+                <div class="stat-label">Most Wins (Driver)</div>
+                <div id="kpi-win-drv" class="stat-value mt-2">-</div>
+                <div id="kpi-win-drv-sub" class="text-sm text-gray-400 mt-1">-</div>
+            </div>
+
+            <div class="f1-card p-5 md:p-6 relative overflow-hidden group">
+                <i class="fa-solid fa-car absolute -right-4 -bottom-4 text-5xl md:text-6xl text-white/5 group-hover:text-white/10 transition"></i>
+                <div class="stat-label">Most Wins (Team)</div>
+                <div id="kpi-win-team" class="stat-value mt-2">-</div>
+                <div id="kpi-win-team-sub" class="text-sm text-gray-400 mt-1">-</div>
+            </div>
+
+            <div class="f1-card p-5 md:p-6 relative overflow-hidden group">
+                <i class="fa-regular fa-calendar absolute -right-4 -bottom-4 text-5xl md:text-6xl text-white/5 group-hover:text-white/10 transition"></i>
+                <div class="stat-label">First Grand Prix</div>
+                <div id="kpi-first" class="stat-value mt-2">-</div>
+                <div id="kpi-first-sub" class="text-sm text-gray-400 mt-1">-</div>
+            </div>
+
+            <div class="f1-card p-5 md:p-6 relative overflow-hidden group">
+                <i class="fa-solid fa-gauge-high absolute -right-4 -bottom-4 text-5xl md:text-6xl text-white/5 group-hover:text-white/10 transition"></i>
+                <div class="stat-label">Avg Speed (Record)</div>
+                <div id="kpi-speed" class="stat-value mt-2">-</div>
+                <div id="kpi-speed-sub" class="text-sm text-gray-400 mt-1">-</div>
+            </div>
+        </section>
+
+        <!-- Dynamic Data Visualizations & Recent Winners -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-12">
+            <!-- Constructor Wins Chart using Chart.js -->
+            <div class="bg-f1-card rounded-xl p-5 md:p-6 border border-f1-gray shadow-lg">
+                <h3 class="text-xl font-bold mb-4 tracking-wide uppercase">Constructor Wins (Top Teams)</h3>
+                <div class="w-full h-[250px] md:h-[300px]">
+                    <canvas id="constructorChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Winners Interactive Table -->
+            <div class="bg-f1-card rounded-xl border border-f1-gray overflow-hidden flex flex-col shadow-lg">
+                <div class="p-5 md:p-6 pb-4 border-b border-f1-gray flex justify-between items-center">
+                    <h3 class="text-xl font-bold tracking-wide uppercase">Recent Winners</h3>
+                    <i class="fa-solid fa-medal text-f1-red text-xl"></i>
+                </div>
+                <div class="overflow-x-auto flex-grow">
+                    <table class="w-full text-left border-collapse min-w-[500px]">
+                        <thead>
+                            <tr class="bg-f1-dark text-gray-400 text-xs md:text-sm uppercase">
+                                <th class="p-3 md:p-4 font-semibold">Year</th>
+                                <th class="p-3 md:p-4 font-semibold">Driver</th>
+                                <th class="p-3 md:p-4 font-semibold">Constructor</th>
+                                <th class="p-3 md:p-4 font-semibold text-right">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="winners-tbody" class="text-xs md:text-sm">
+                            <!-- Injected dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Advanced Circuit Analysis (Elevation & G-Force) -->
+        <h2 id="analysis" class="text-2xl font-bold mb-6 border-l-4 border-f1-red pl-3 uppercase tracking-wide mt-12">Advanced Circuit Telemetry</h2>
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-12">
+            <!-- Elevation Profile Chart -->
+            <div class="lg:col-span-2 bg-f1-card rounded-xl p-5 md:p-6 border border-f1-gray shadow-lg">
+                <h3 class="text-lg font-bold mb-1 tracking-wide uppercase text-gray-300"><i class="fa-solid fa-mountain mr-2 text-f1-red"></i> Elevation Profile</h3>
+                <p class="text-xs md:text-sm text-gray-500 mb-4">Meters above sea level over lap distance</p>
+                <div class="w-full h-[200px] md:h-[220px]">
+                    <canvas id="elevationChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Telemetry Hotspots -->
+            <div class="bg-f1-card rounded-xl p-5 md:p-6 border border-f1-gray shadow-lg flex flex-col justify-center">
+                <h3 class="text-lg font-bold mb-6 tracking-wide uppercase text-gray-300 border-b border-f1-gray pb-3"><i class="fa-solid fa-tower-broadcast mr-2 text-f1-red"></i> Telemetry Hotspots</h3>
+                
+                <div class="mb-6">
+                    <div class="flex justify-between items-end mb-1">
+                        <span class="text-xs md:text-sm font-semibold uppercase text-gray-400">Peak G-Force (Cornering)</span>
+                        <span id="gforce-val" class="text-xl md:text-2xl font-black text-f1-red">--</span>
+                    </div>
+                    <div class="w-full bg-f1-dark rounded-full h-2.5 shadow-inner">
+                        <div id="gforce-bar" class="bg-f1-red h-2.5 rounded-full" style="width: 85%"></div>
+                    </div>
+                    <p id="gforce-loc" class="text-xs text-gray-500 mt-1 text-right">--</p>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-end mb-1">
+                        <span class="text-xs md:text-sm font-semibold uppercase text-gray-400">Heaviest Braking Zone</span>
+                        <span id="braking-val" class="text-lg md:text-xl font-bold text-white">--</span>
+                    </div>
+                    <div class="w-full bg-f1-dark rounded-full h-2.5 shadow-inner">
+                        <div id="braking-bar" class="bg-yellow-500 h-2.5 rounded-full" style="width: 70%"></div>
+                    </div>
+                    <p id="braking-loc" class="text-xs text-gray-500 mt-1 text-right">--</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Race Dynamics & Strategy -->
+        <h2 id="dynamics" class="text-2xl font-bold mb-6 border-l-4 border-f1-red pl-3 uppercase tracking-wide mt-12">Qualifying & Race Dynamics</h2>
+        <section class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 md:gap-8 mb-12">
+            
+            <!-- Action & Overtaking Gauge -->
+            <div class="bg-f1-card rounded-xl p-5 md:p-6 border border-f1-gray shadow-lg flex flex-col justify-between">
+                <div>
+                    <h3 class="text-lg font-bold mb-1 tracking-wide uppercase text-gray-300"><i class="fa-solid fa-gauge-high mr-2 text-f1-red"></i> Action Index</h3>
+                    <p class="text-xs text-gray-500 mb-6">Historical probability of passes</p>
+                </div>
+                <div class="relative w-full h-[140px] flex justify-center items-end pb-2">
+                    <div class="absolute inset-0 flex justify-center">
+                        <canvas id="actionGauge" class="max-w-[220px]"></canvas>
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center">
+                        <span id="action-score" class="text-3xl font-black text-white drop-shadow-md">--/10</span>
+                        <span id="action-label" class="text-xs font-bold text-f1-red uppercase tracking-widest mt-1">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pole Position Conversion Rate -->
+            <div class="bg-f1-card rounded-xl p-5 md:p-6 border border-f1-gray shadow-lg flex flex-col justify-between">
+                <div>
+                    <h3 class="text-lg font-bold mb-1 tracking-wide uppercase text-gray-300"><i class="fa-solid fa-trophy mr-2 text-f1-red"></i> Pole Conversion</h3>
+                    <p class="text-xs text-gray-500 mb-6">Win percentage from 1st place</p>
+                </div>
+                <div class="relative w-full h-[140px] flex justify-center items-center pb-2">
+                    <div class="absolute inset-0 flex justify-center">
+                        <canvas id="poleChart" class="max-w-[140px]"></canvas>
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center pointer-events-none">
+                        <span id="pole-score" class="text-3xl font-black text-white drop-shadow-md">--%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Speed "Speed Trap" -->
+            <div class="bg-f1-card rounded-xl p-5 md:p-6 border border-f1-gray shadow-lg flex flex-col justify-between col-span-1 xl:col-span-2">
+                <div>
+                    <h3 class="text-lg font-bold mb-1 tracking-wide uppercase text-gray-300"><i class="fa-solid fa-bolt mr-2 text-f1-red"></i> Speed Trap Records</h3>
+                    <p class="text-xs text-gray-500 mb-4">Highest recorded top speeds by constructor (km/h)</p>
+                </div>
+                <div class="w-full h-[150px]">
+                    <canvas id="speedTrapChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Sunday Strategy Tire Timeline (Spans full width below) -->
+            <div class="bg-f1-card rounded-xl p-5 md:p-6 border border-f1-gray shadow-lg flex flex-col justify-between col-span-1 lg:col-span-2 xl:col-span-4">
+                <div>
+                    <h3 class="text-lg font-bold mb-1 tracking-wide uppercase text-gray-300"><i class="fa-solid fa-route mr-2 text-f1-red"></i> Winning Pit Strategy</h3>
+                    <p class="text-xs md:text-sm text-gray-500 mb-2">Previous winning tire timeline executed by <span id="strategy-winner" class="text-white font-bold">--</span></p>
+                </div>
+                <div id="strategy-container" class="w-full flex-grow flex flex-col justify-center px-4 py-8">
+                    <!-- Timeline injected by JS -->
+                </div>
+                <!-- Legend -->
+                <div class="flex justify-center gap-4 mt-4 pt-4 border-t border-f1-gray">
+                    <div class="flex items-center gap-1.5 text-xs text-gray-400"><div class="w-3 h-3 rounded-full bg-red-500 ring-1 ring-red-500/50"></div> Soft</div>
+                    <div class="flex items-center gap-1.5 text-xs text-gray-400"><div class="w-3 h-3 rounded-full bg-yellow-400 ring-1 ring-yellow-400/50"></div> Medium</div>
+                    <div class="flex items-center gap-1.5 text-xs text-gray-400"><div class="w-3 h-3 rounded-full border bg-white ring-1 ring-white/50"></div> Hard</div>
+                </div>
+            </div>
+            
+        </section>
+
+    </main>
+
+    <!-- Thinner, Sticky Footer with Copyright Safe Text -->
+    <footer class="fixed bottom-0 w-full bg-f1-dark/95 backdrop-blur-sm border-t border-f1-gray py-2 z-50 text-[10px] md:text-xs text-gray-500 shadow-[0_-5px_15px_rgba(0,0,0,0.3)]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <div class="flex-1 text-left whitespace-nowrap">
+                <a href="https://aimaverick.me" target="_blank" rel="noopener noreferrer" class="hover:text-white transition">&copy; 2026 @amsubhzd</a>
+            </div>
+            <div class="hidden md:block flex-auto text-center truncate px-4">
+                <span class="font-bold text-gray-300 tracking-wider">F1 2026 SCHEDULE</span> &bull; Unofficial fan dashboard. Not affiliated with F1.
+            </div>
+            <div class="md:hidden flex-auto text-center font-bold text-gray-300 tracking-wider px-2">
+                F1 2026
+            </div>
+            <div class="flex-1 text-right whitespace-nowrap">
+                Designed by <span class="text-white font-semibold">AIMaverick</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Added bottom padding to body to prevent content hiding behind sticky footer -->
+    <style>
+        body { padding-bottom: 40px; }
+    </style>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // === Global F1 GP Dataset (Rounds 1 - 6) with Elevation/G-Force Telemetry ===
+        const gpData = {
+            australia: {
+                round: "Round 1",
+                title: "Australian Grand Prix",
+                location: "Albert Park, Melbourne • 06 - 08 MAR 2026",
+                dateTarget: new Date(Date.UTC(2026, 2, 8, 4, 0, 0)).getTime(),
+                heroImg: "https://media.formula1.com/image/upload/t_16by9Centre/f_auto/q_auto/v1679667793/fom-website/2023/Australia/Friday/GettyImages-1478207908.jpg",
+                trackImg: "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000000/common/f1/2026/track/2026trackalbertparkdetailed.webp",
+                fallbackImg: "https://media.formula1.com/image/upload/f_auto/q_auto/v1677244985/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Australia_Circuit.png",
+                emojiHue: "0deg", // Red (Base)
+                kpis: {
+                    length: "5.278 <span class='text-sm text-gray-400 font-normal'>km</span>",
+                    lengthSub: "14 Turns",
+                    dist: "306.124 <span class='text-sm text-gray-400 font-normal'>km</span>",
+                    distSub: "58 Laps",
+                    lapRec: "1:19.813",
+                    lapRecSub: "C. Leclerc (2024)",
+                    qualRec: "1:15.096",
+                    qualRecSub: "L. Norris (2025)",
+                    winDrv: "4 Wins",
+                    winDrvSub: "M. Schumacher",
+                    winTeam: "14 Wins",
+                    winTeamSub: "Ferrari",
+                    first: "1996",
+                    firstSub: "At Albert Park",
+                    speed: "238 <span class='text-sm text-gray-400 font-normal'>km/h (148 mph)</span>",
+                    speedSub: "Charles Leclerc's 2024 Lap"
+                },
+                telemetry: {
+                    elevation: [15, 14.5, 16, 17, 13, 11, 12, 16, 15],
+                    labels: ['Start', 'T3', 'T5', 'T8', 'T10', 'T12', 'T14', 'Finish'],
+                    peakG: "5.2G",
+                    peakGLoc: "Turn 11 (High-speed chicane)",
+                    peakGPct: 85,
+                    brakeG: "-4.8G",
+                    brakeLoc: "Turn 3 Approach",
+                    brakePct: 80
+                },
+                actionIndex: { value: 6, label: "Medium Action" },
+                poleConversion: 43,
+                speedTrap: {
+                    labels: ['Red Bull', 'Ferrari', 'McLaren', 'Mercedes'],
+                    data: [328, 326, 325, 322]
+                },
+                strategy: {
+                    winner: "L. Norris (2025)",
+                    totalLaps: 58,
+                    stops: [
+                        { lap: 1, compound: "Medium" },
+                        { lap: 22, compound: "Hard" }
+                    ]
+                },
+                chart: {
+                    labels: ['Ferrari', 'McLaren', 'Williams', 'Mercedes', 'Red Bull'],
+                    data: [14, 12, 6, 4, 2]
+                },
+                winners: [
+                    { year: 2025, driver: "Lando Norris", team: "McLaren", time: "1:42:06.304", color: "#FF8700" },
+                    { year: 2024, driver: "Carlos Sainz", team: "Ferrari", time: "1:20:26.843", color: "#DC0000" },
+                    { year: 2023, driver: "Max Verstappen", team: "Red Bull", time: "2:32:38.371", color: "#3671C6" },
+                    { year: 2022, driver: "Charles Leclerc", team: "Ferrari", time: "1:27:46.548", color: "#DC0000" },
+                    { year: 2019, driver: "Valtteri Bottas", team: "Mercedes", time: "1:25:27.325", color: "#00D2BE" }
+                ]
+            },
+            china: {
+                round: "Round 2",
+                title: "Chinese Grand Prix",
+                location: "Shanghai International Circuit • 13 - 15 MAR 2026",
+                dateTarget: new Date(Date.UTC(2026, 2, 15, 7, 0, 0)).getTime(),
+                heroImg: "https://media.formula1.com/image/upload/t_16by9Centre/f_auto/q_auto/v1713508493/fom-website/2024/China/Friday/GettyImages-2148286950.jpg",
+                trackImg: "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000000/common/f1/2026/track/2026trackshanghaidetailed.webp",
+                fallbackImg: "https://media.formula1.com/image/upload/f_auto/q_auto/v1677244985/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/China_Circuit.png",
+                emojiHue: "120deg", // Greenish
+                kpis: {
+                    length: "5.451 <span class='text-sm text-gray-400 font-normal'>km</span>",
+                    lengthSub: "16 Turns",
+                    dist: "305.066 <span class='text-sm text-gray-400 font-normal'>km</span>",
+                    distSub: "56 Laps",
+                    lapRec: "1:32.238",
+                    lapRecSub: "M. Schumacher (2004)",
+                    qualRec: "1:31.095",
+                    qualRecSub: "S. Vettel (2018)",
+                    winDrv: "6 Wins",
+                    winDrvSub: "L. Hamilton",
+                    winTeam: "6 Wins",
+                    winTeamSub: "Mercedes",
+                    first: "2004",
+                    firstSub: "Shanghai Circuit",
+                    speed: "205 <span class='text-sm text-gray-400 font-normal'>km/h (127 mph)</span>",
+                    speedSub: "Track Average Speed"
+                },
+                telemetry: {
+                    elevation: [4, 4.5, 7, 5, 4, 3, 5, 4],
+                    labels: ['Start', 'T1', 'T6', 'T9', 'T11', 'Back Straight', 'T14', 'Finish'],
+                    peakG: "4.8G",
+                    peakGLoc: "Turn 7 & 8 Complex",
+                    peakGPct: 75,
+                    brakeG: "-5.0G",
+                    brakeLoc: "Turn 14 (Hairpin)",
+                    brakePct: 90
+                },
+                actionIndex: { value: 8, label: "High Action" },
+                poleConversion: 50,
+                speedTrap: {
+                    labels: ['Red Bull', 'Ferrari', 'Mercedes', 'McLaren'],
+                    data: [330, 329, 327, 325]
+                },
+                strategy: {
+                    winner: "M. Verstappen (2025)",
+                    totalLaps: 56,
+                    stops: [
+                        { lap: 1, compound: "Medium" },
+                        { lap: 14, compound: "Hard" },
+                        { lap: 24, compound: "Hard" }
+                    ]
+                },
+                chart: {
+                    labels: ['Mercedes', 'Ferrari', 'Red Bull', 'McLaren'],
+                    data: [6, 4, 3, 3]
+                },
+                winners: [
+                    { year: 2025, driver: "Max Verstappen", team: "Red Bull", time: "1:38:12.450", color: "#3671C6" },
+                    { year: 2024, driver: "Max Verstappen", team: "Red Bull", time: "1:40:52.554", color: "#3671C6" },
+                    { year: 2019, driver: "Lewis Hamilton", team: "Mercedes", time: "1:32:06.350", color: "#00D2BE" },
+                    { year: 2018, driver: "Daniel Ricciardo", team: "Red Bull", time: "1:35:36.380", color: "#3671C6" },
+                    { year: 2017, driver: "Lewis Hamilton", team: "Mercedes", time: "1:37:36.158", color: "#00D2BE" }
+                ]
+            },
+            japan: {
+                round: "Round 3",
+                title: "Japanese Grand Prix",
+                location: "Suzuka Circuit • 27 - 29 MAR 2026",
+                dateTarget: new Date(Date.UTC(2026, 2, 29, 5, 0, 0)).getTime(),
+                heroImg: "https://media.formula1.com/image/upload/t_16by9Centre/f_auto/q_auto/v1712288075/fom-website/2024/Japan/Friday/GettyImages-2147321689.jpg",
+                trackImg: "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000000/common/f1/2026/track/2026tracksuzukadetailed.webp",
+                fallbackImg: "https://media.formula1.com/image/upload/f_auto/q_auto/v1677244985/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Japan_Circuit.png",
+                emojiHue: "220deg", // Blueish
+                kpis: {
+                    length: "5.807 <span class='text-sm text-gray-400 font-normal'>km</span>",
+                    lengthSub: "18 Turns",
+                    dist: "307.471 <span class='text-sm text-gray-400 font-normal'>km</span>",
+                    distSub: "53 Laps",
+                    lapRec: "1:30.983",
+                    lapRecSub: "L. Hamilton (2019)",
+                    qualRec: "1:27.064",
+                    qualRecSub: "S. Vettel (2019)",
+                    winDrv: "6 Wins",
+                    winDrvSub: "M. Schumacher",
+                    winTeam: "9 Wins",
+                    winTeamSub: "McLaren",
+                    first: "1987",
+                    firstSub: "Suzuka Circuit",
+                    speed: "230 <span class='text-sm text-gray-400 font-normal'>km/h (143 mph)</span>",
+                    speedSub: "Track Average Speed"
+                },
+                telemetry: {
+                    elevation: [45, 48, 55, 60, 68, 62, 50, 48, 45],
+                    labels: ['Start', 'T1', 'S-Curves', 'Degner', 'Hairpin', 'Spoon', '130R', 'Chicane', 'Finish'],
+                    peakG: "5.5G",
+                    peakGLoc: "130R Corner",
+                    peakGPct: 95,
+                    brakeG: "-4.6G",
+                    brakeLoc: "Turn 16 (Casio Triangle)",
+                    brakePct: 75
+                },
+                actionIndex: { value: 7, label: "Solid Action" },
+                poleConversion: 55,
+                speedTrap: {
+                    labels: ['Red Bull', 'McLaren', 'Ferrari', 'Mercedes'],
+                    data: [320, 318, 317, 315]
+                },
+                strategy: {
+                    winner: "M. Verstappen (2025)",
+                    totalLaps: 53,
+                    stops: [
+                        { lap: 1, compound: "Medium" },
+                        { lap: 17, compound: "Hard" },
+                        { lap: 35, compound: "Hard" }
+                    ]
+                },
+                chart: {
+                    labels: ['McLaren', 'Ferrari', 'Mercedes', 'Red Bull', 'Benetton'],
+                    data: [9, 7, 6, 6, 3]
+                },
+                winners: [
+                    { year: 2025, driver: "Max Verstappen", team: "Red Bull", time: "1:50:12.334", color: "#3671C6" },
+                    { year: 2024, driver: "Max Verstappen", team: "Red Bull", time: "1:54:23.566", color: "#3671C6" },
+                    { year: 2023, driver: "Max Verstappen", team: "Red Bull", time: "1:30:58.421", color: "#3671C6" },
+                    { year: 2022, driver: "Max Verstappen", team: "Red Bull", time: "3:01:44.004", color: "#3671C6" },
+                    { year: 2019, driver: "Valtteri Bottas", team: "Mercedes", time: "1:21:46.755", color: "#00D2BE" }
+                ]
+            },
+            bahrain: {
+                round: "Round 4",
+                title: "Bahrain Grand Prix",
+                location: "Sakhir, Bahrain • 10 - 12 APR 2026",
+                dateTarget: new Date(Date.UTC(2026, 3, 12, 15, 0, 0)).getTime(),
+                heroImg: "https://media.formula1.com/image/upload/t_16by9Centre/f_auto/q_auto/v1709218684/fom-website/2024/Bahrain/Friday/GettyImages-2051648010.jpg",
+                trackImg: "https://media.formula1.com/image/upload/f_auto/q_auto/v1677244985/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Bahrain_Circuit.png",
+                fallbackImg: "https://media.formula1.com/image/upload/f_auto/q_auto/v1677244985/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Bahrain_Circuit.png",
+                emojiHue: "300deg", // Pink/Purple
+                kpis: {
+                    length: "5.412 <span class='text-sm text-gray-400 font-normal'>km</span>",
+                    lengthSub: "15 Turns",
+                    dist: "308.238 <span class='text-sm text-gray-400 font-normal'>km</span>",
+                    distSub: "57 Laps",
+                    lapRec: "1:31.447",
+                    lapRecSub: "P. de la Rosa (2005)",
+                    qualRec: "1:27.264",
+                    qualRecSub: "L. Hamilton (2020)",
+                    winDrv: "5 Wins",
+                    winDrvSub: "L. Hamilton",
+                    winTeam: "7 Wins",
+                    winTeamSub: "Ferrari",
+                    first: "2004",
+                    firstSub: "Bahrain International Circuit",
+                    speed: "213 <span class='text-sm text-gray-400 font-normal'>km/h (132 mph)</span>",
+                    speedSub: "Track Average Speed"
+                },
+                telemetry: {
+                    elevation: [18, 15, 20, 22, 18, 15, 12, 16, 18],
+                    labels: ['Start', 'T1', 'T4', 'T8', 'T10', 'T12', 'T14', 'Finish'],
+                    peakG: "4.5G",
+                    peakGLoc: "Turn 12",
+                    peakGPct: 65,
+                    brakeG: "-5.2G",
+                    brakeLoc: "Turn 1 Approach",
+                    brakePct: 95
+                },
+                actionIndex: { value: 9, label: "Max Action" },
+                poleConversion: 42,
+                speedTrap: {
+                    labels: ['Ferrari', 'Red Bull', 'Mercedes', 'McLaren'],
+                    data: [326, 325, 322, 321]
+                },
+                strategy: {
+                    winner: "C. Leclerc (2025)",
+                    totalLaps: 57,
+                    stops: [
+                        { lap: 1, compound: "Soft" },
+                        { lap: 15, compound: "Hard" },
+                        { lap: 38, compound: "Hard" }
+                    ]
+                },
+                chart: {
+                    labels: ['Ferrari', 'Mercedes', 'Red Bull', 'Renault', 'Brawn'],
+                    data: [7, 6, 4, 2, 1]
+                },
+                winners: [
+                    { year: 2025, driver: "Charles Leclerc", team: "Ferrari", time: "1:31:05.221", color: "#DC0000" },
+                    { year: 2024, driver: "Max Verstappen", team: "Red Bull", time: "1:31:44.742", color: "#3671C6" },
+                    { year: 2023, driver: "Max Verstappen", team: "Red Bull", time: "1:33:56.736", color: "#3671C6" },
+                    { year: 2022, driver: "Charles Leclerc", team: "Ferrari", time: "1:37:33.584", color: "#DC0000" },
+                    { year: 2021, driver: "Lewis Hamilton", team: "Mercedes", time: "1:32:03.897", color: "#00D2BE" }
+                ]
+            },
+            saudi: {
+                round: "Round 5",
+                title: "Saudi Arabian Grand Prix",
+                location: "Jeddah Corniche Circuit • 17 - 19 APR 2026",
+                dateTarget: new Date(Date.UTC(2026, 3, 19, 17, 0, 0)).getTime(),
+                heroImg: "https://media.formula1.com/image/upload/t_16by9Centre/f_auto/q_auto/v1710002138/fom-website/2024/Saudi%20Arabia/Friday/GettyImages-2065870000.jpg",
+                trackImg: "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000000/common/f1/2026/track/2026trackjeddahdetailed.webp",
+                fallbackImg: "https://media.formula1.com/image/upload/f_auto/q_auto/v1677244985/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Saudi_Arabia_Circuit.png",
+                emojiHue: "160deg", // Dark Cyan
+                kpis: {
+                    length: "6.174 <span class='text-sm text-gray-400 font-normal'>km</span>",
+                    lengthSub: "27 Turns",
+                    dist: "308.450 <span class='text-sm text-gray-400 font-normal'>km</span>",
+                    distSub: "50 Laps",
+                    lapRec: "1:30.734",
+                    lapRecSub: "L. Hamilton (2021)",
+                    qualRec: "1:27.472",
+                    qualRecSub: "M. Verstappen (2024)",
+                    winDrv: "2 Wins",
+                    winDrvSub: "M. Verstappen",
+                    winTeam: "3 Wins",
+                    winTeamSub: "Red Bull",
+                    first: "2021",
+                    firstSub: "Jeddah Corniche Circuit",
+                    speed: "253 <span class='text-sm text-gray-400 font-normal'>km/h (157 mph)</span>",
+                    speedSub: "Track Average Speed"
+                },
+                telemetry: {
+                    elevation: [2, 2.5, 3, 2, 2, 3, 2, 2],
+                    labels: ['Start', 'T1', 'T13', 'T16', 'T22', 'T27', 'Finish'],
+                    peakG: "5.1G",
+                    peakGLoc: "Turn 22 (Fast left-hander)",
+                    peakGPct: 83,
+                    brakeG: "-4.2G",
+                    brakeLoc: "Turn 27",
+                    brakePct: 60
+                },
+                actionIndex: { value: 8, label: "High Action" },
+                poleConversion: 80,
+                speedTrap: {
+                    labels: ['Red Bull', 'Ferrari', 'McLaren', 'Mercedes'],
+                    data: [335, 334, 332, 330]
+                },
+                strategy: {
+                    winner: "C. Leclerc (2025)",
+                    totalLaps: 50,
+                    stops: [
+                        { lap: 1, compound: "Medium" },
+                        { lap: 19, compound: "Hard" }
+                    ]
+                },
+                chart: {
+                    labels: ['Red Bull', 'Mercedes'],
+                    data: [3, 1]
+                },
+                winners: [
+                    { year: 2025, driver: "Charles Leclerc", team: "Ferrari", time: "1:20:10.123", color: "#DC0000" },
+                    { year: 2024, driver: "Max Verstappen", team: "Red Bull", time: "1:20:43.273", color: "#3671C6" },
+                    { year: 2023, driver: "Sergio Perez", team: "Red Bull", time: "1:21:14.894", color: "#3671C6" },
+                    { year: 2022, driver: "Max Verstappen", team: "Red Bull", time: "1:24:19.293", color: "#3671C6" },
+                    { year: 2021, driver: "Lewis Hamilton", team: "Mercedes", time: "2:06:15.118", color: "#00D2BE" }
+                ]
+            },
+            miami: {
+                round: "Round 6",
+                title: "Miami Grand Prix",
+                location: "Miami International Autodrome • 01 - 03 MAY 2026",
+                dateTarget: new Date(Date.UTC(2026, 4, 3, 20, 0, 0)).getTime(),
+                heroImg: "https://media.formula1.com/image/upload/t_16by9Centre/f_auto/q_auto/v1714757317/fom-website/2024/Miami/Friday/GettyImages-2150937397.jpg",
+                trackImg: "https://media.formula1.com/image/upload/c_fit,h_704/q_auto/v1740000000/common/f1/2026/track/2026trackmiamidetailed.webp",
+                fallbackImg: "https://media.formula1.com/image/upload/f_auto/q_auto/v1677244985/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Miami_Circuit.png",
+                emojiHue: "45deg", // Orange/Miami colors
+                kpis: {
+                    length: "5.412 <span class='text-sm text-gray-400 font-normal'>km</span>",
+                    lengthSub: "19 Turns",
+                    dist: "308.326 <span class='text-sm text-gray-400 font-normal'>km</span>",
+                    distSub: "57 Laps",
+                    lapRec: "1:29.708",
+                    lapRecSub: "M. Verstappen (2023)",
+                    qualRec: "1:26.841",
+                    qualRecSub: "C. Leclerc (2023)",
+                    winDrv: "2 Wins",
+                    winDrvSub: "M. Verstappen",
+                    winTeam: "2 Wins",
+                    winTeamSub: "Red Bull",
+                    first: "2022",
+                    firstSub: "Miami Int. Autodrome",
+                    speed: "216 <span class='text-sm text-gray-400 font-normal'>km/h (134 mph)</span>",
+                    speedSub: "Track Average Speed"
+                },
+                telemetry: {
+                    elevation: [3, 4, 8, 7, 3, 2, 4, 3],
+                    labels: ['Start', 'T4', 'T8', 'T11', 'T14', 'Back Straight', 'T17', 'Finish'],
+                    peakG: "4.7G",
+                    peakGLoc: "Turn 14",
+                    peakGPct: 70,
+                    brakeG: "-4.9G",
+                    brakeLoc: "Turn 17 Approach",
+                    brakePct: 85
+                },
+                actionIndex: { value: 6, label: "Medium Action" },
+                poleConversion: 66,
+                speedTrap: {
+                    labels: ['Red Bull', 'McLaren', 'Ferrari', 'Mercedes'],
+                    data: [334, 333, 330, 329]
+                },
+                strategy: {
+                    winner: "M. Verstappen (2025)",
+                    totalLaps: 57,
+                    stops: [
+                        { lap: 1, compound: "Medium" },
+                        { lap: 28, compound: "Hard" }
+                    ]
+                },
+                chart: {
+                    labels: ['Red Bull', 'McLaren'],
+                    data: [2, 1]
+                },
+                winners: [
+                    { year: 2025, driver: "Max Verstappen", team: "Red Bull", time: "1:29:15.112", color: "#3671C6" },
+                    { year: 2024, driver: "Lando Norris", team: "McLaren", time: "1:30:49.876", color: "#FF8700" },
+                    { year: 2023, driver: "Max Verstappen", team: "Red Bull", time: "1:27:38.241", color: "#3671C6" },
+                    { year: 2022, driver: "Max Verstappen", team: "Red Bull", time: "1:34:24.258", color: "#3671C6" }
+                ]
+            }
+        };
+
+        // === Application State & Initialization ===
+        let chartInstance = null;
+        let elevationChartInstance = null;
+        let actionGaugeInstance = null;
+        let poleChartInstance = null;
+        let speedTrapChartInstance = null;
+        let countdownInterval = null;
+
+        // F1 Team Colors Registry
+        const teamColorsRegistry = {
+            'Ferrari': '#DC0000',
+            'McLaren': '#FF8700',
+            'Williams': '#005AFF',
+            'Mercedes': '#00D2BE',
+            'Red Bull': '#3671C6',
+            'Renault': '#FFF500',
+            'Brawn': '#B8FD29',
+            'Benetton': '#008855',
+            'Lotus': '#FFB800'
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Set Chart Defaults once
+            Chart.defaults.color = '#a0a0a5';
+            Chart.defaults.font.family = '"Titillium Web", sans-serif';
+
+            // Load initial GP (Australia)
+            loadGP('australia');
+        });
+        
+        // === Navigation Function ===
+        function selectTab(gpId, element) {
+            // Reset styles for all tabs
+            const tabs = document.querySelectorAll('.gp-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('bg-f1-red', 'text-white', 'active-tab', 'shadow-lg');
+                tab.classList.add('text-gray-300', 'hover:bg-white/10');
+            });
+            
+            // Add active styles to clicked tab
+            element.classList.remove('text-gray-300', 'hover:bg-white/10');
+            element.classList.add('bg-f1-red', 'text-white', 'active-tab', 'shadow-lg');
+            
+            // Load the GP data
+            loadGP(gpId);
+        }
+
+        // === Core Render Logic ===
+        function loadGP(gpId) {
+            const data = gpData[gpId];
+            if (!data) return;
+
+            // 1. Update Hero Section & Dynamic Emoji
+            document.getElementById('hero-bg').style.backgroundImage = `url('${data.heroImg}')`;
+            document.getElementById('hero-round').innerText = data.round;
+            document.getElementById('hero-title').innerText = data.title;
+            document.getElementById('hero-loc').innerHTML = data.location;
+            
+            // Emoji hue shifts correctly based on the GP
+            document.getElementById('hero-car-emoji').style.filter = `hue-rotate(${data.emojiHue})`;
+            
+            // Injecting the F1 Official Image with an automatic fallback error handler
+            document.getElementById('track-img-wrapper').innerHTML = `
+                <img src="${data.trackImg}" 
+                     onerror="this.onerror=null;this.src='${data.fallbackImg}';" 
+                     alt="${data.title} Track Map" 
+                     class="w-full h-auto object-contain max-h-[250px] drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
+            `;
+            // Also update modal image immediately
+            document.getElementById('modal-img').src = data.trackImg;
+            document.getElementById('modal-img').onerror = function() { this.src = data.fallbackImg; };
+            document.getElementById('modal-title').innerText = data.title + " Circuit Details";
+
+            // 2. Update KPIs
+            document.getElementById('kpi-length').innerHTML = data.kpis.length;
+            document.getElementById('kpi-length-sub').innerText = data.kpis.lengthSub;
+            
+            document.getElementById('kpi-dist').innerHTML = data.kpis.dist;
+            document.getElementById('kpi-dist-sub').innerText = data.kpis.distSub;
+            
+            document.getElementById('kpi-lap-rec').innerText = data.kpis.lapRec;
+            document.getElementById('kpi-lap-rec-sub').innerText = data.kpis.lapRecSub;
+            
+            document.getElementById('kpi-qual-rec').innerText = data.kpis.qualRec;
+            document.getElementById('kpi-qual-rec-sub').innerText = data.kpis.qualRecSub;
+            
+            document.getElementById('kpi-win-drv').innerText = data.kpis.winDrv;
+            document.getElementById('kpi-win-drv-sub').innerText = data.kpis.winDrvSub;
+            
+            document.getElementById('kpi-win-team').innerText = data.kpis.winTeam;
+            document.getElementById('kpi-win-team-sub').innerText = data.kpis.winTeamSub;
+            
+            document.getElementById('kpi-first').innerText = data.kpis.first;
+            document.getElementById('kpi-first-sub').innerText = data.kpis.firstSub;
+            
+            document.getElementById('kpi-speed').innerHTML = data.kpis.speed;
+            document.getElementById('kpi-speed-sub').innerText = data.kpis.speedSub;
+
+            // 3. Update Telemetry Texts
+            document.getElementById('gforce-val').innerText = data.telemetry.peakG;
+            document.getElementById('gforce-loc').innerText = data.telemetry.peakGLoc;
+            document.getElementById('gforce-bar').style.width = data.telemetry.peakGPct + '%';
+            
+            document.getElementById('braking-val').innerText = data.telemetry.brakeG;
+            document.getElementById('braking-loc').innerText = data.telemetry.brakeLoc;
+            document.getElementById('braking-bar').style.width = data.telemetry.brakePct + '%';
+
+            // 4. Render Visualizations & Dynamics
+            renderChart(data.chart.labels, data.chart.data);
+            renderElevationChart(data.telemetry.labels, data.telemetry.elevation);
+            renderActionGauge(data.actionIndex);
+            renderPoleChart(data.poleConversion);
+            renderSpeedTrapChart(data.speedTrap.labels, data.speedTrap.data);
+            renderStrategy(data.strategy);
+
+            // 5. Render Table
+            renderTable(data.winners);
+
+            // 6. Start Countdown
+            startCountdown(data.dateTarget);
+        }
+
+        // --- Interactive Functions ---
+        
+        function openModal() {
+            const modal = document.getElementById('track-modal');
+            modal.classList.remove('hidden');
+            // Small delay to allow display:block to apply before transition
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.classList.add('opacity-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('track-modal');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300); // Wait for transition
+        }
+
+        // --- Chart Renderers ---
+
+        function renderChart(labels, dataArray) {
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const ctx = document.getElementById('constructorChart').getContext('2d');
+            const bgColors = labels.map(team => teamColorsRegistry[team] || '#888888');
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Wins',
+                        data: dataArray,
+                        backgroundColor: bgColors,
+                        borderRadius: 4,
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#15151E',
+                            titleFont: { size: 14, family: '"Titillium Web", sans-serif' },
+                            bodyFont: { size: 14, family: '"Titillium Web", sans-serif' },
+                            padding: 12,
+                            borderColor: '#38383f',
+                            borderWidth: 1,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#38383f', drawBorder: false },
+                            ticks: { stepSize: 2 }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { font: { weight: 'bold', size: 13 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderElevationChart(labels, dataArray) {
+            if (elevationChartInstance) {
+                elevationChartInstance.destroy();
+            }
+
+            const ctx = document.getElementById('elevationChart').getContext('2d');
+            
+            // Create gradient fill
+            let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(225, 6, 0, 0.5)');   // F1 Red transparent
+            gradient.addColorStop(1, 'rgba(21, 21, 30, 0)');    // Fade to dark background
+
+            elevationChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Elevation (m)',
+                        data: dataArray,
+                        borderColor: '#E10600',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#E10600',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4 // Smooth curves like a track
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#15151E',
+                            titleFont: { size: 14, family: '"Titillium Web", sans-serif' },
+                            bodyFont: { size: 14, font: {weight: 'bold'}, family: '"Titillium Web", sans-serif' },
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + ' meters';
+                                }
+                            },
+                            padding: 12,
+                            borderColor: '#E10600',
+                            borderWidth: 1,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: '#38383f', drawBorder: false, borderDash: [5, 5] },
+                            ticks: { font: { size: 11 } }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { font: { weight: '600', size: 11 }, maxRotation: 45, minRotation: 45 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderActionGauge(actionData) {
+            if (actionGaugeInstance) {
+                actionGaugeInstance.destroy();
+            }
+
+            const ctx = document.getElementById('actionGauge').getContext('2d');
+            
+            // Determine color based on value
+            let color = '#E10600'; // High action (Red)
+            if (actionData.value <= 4) color = '#00D2BE'; // Low action (Teal)
+            else if (actionData.value <= 7) color = '#FF8700'; // Medium action (Orange)
+
+            actionGaugeInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [actionData.value, 10 - actionData.value],
+                        backgroundColor: [color, '#2a2a35'],
+                        borderWidth: 0,
+                        borderRadius: [5, 0],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    circumference: 180,
+                    rotation: 270,
+                    cutout: '80%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+
+            document.getElementById('action-score').innerText = actionData.value + '/10';
+            document.getElementById('action-label').innerText = actionData.label;
+            document.getElementById('action-label').style.color = color;
+        }
+
+        function renderPoleChart(conversionRate) {
+            if (poleChartInstance) {
+                poleChartInstance.destroy();
+            }
+
+            const ctx = document.getElementById('poleChart').getContext('2d');
+            
+            poleChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [conversionRate, 100 - conversionRate],
+                        backgroundColor: ['#E10600', '#2a2a35'],
+                        borderWidth: 0,
+                        borderRadius: [5, 0],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+
+            document.getElementById('pole-score').innerText = conversionRate + '%';
+        }
+
+        function renderSpeedTrapChart(labels, dataArray) {
+            if (speedTrapChartInstance) {
+                speedTrapChartInstance.destroy();
+            }
+
+            const ctx = document.getElementById('speedTrapChart').getContext('2d');
+            const bgColors = labels.map(team => teamColorsRegistry[team] || '#888888');
+            
+            // dynamically zoom in on the specific tight speed differences
+            const minSpeed = Math.min(...dataArray) - 10;
+
+            speedTrapChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Top Speed (km/h)',
+                        data: dataArray,
+                        backgroundColor: bgColors,
+                        borderRadius: 4,
+                        borderWidth: 0,
+                        barPercentage: 0.7
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#15151E',
+                            titleFont: { size: 14, family: '"Titillium Web", sans-serif' },
+                            bodyFont: { size: 14, family: '"Titillium Web", sans-serif' },
+                            padding: 12,
+                            borderColor: '#38383f',
+                            borderWidth: 1,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw + ' km/h';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            min: minSpeed,
+                            grid: { color: '#38383f', drawBorder: false, borderDash: [5, 5] },
+                            ticks: { font: { size: 11 } }
+                        },
+                        y: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { font: { weight: 'bold', size: 12 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderStrategy(strategy) {
+            const container = document.getElementById('strategy-container');
+            
+            let html = '<div class="relative w-full h-1.5 bg-f1-gray rounded-full my-6">';
+            
+            strategy.stops.forEach((stop, index) => {
+                const pct = (stop.lap / strategy.totalLaps) * 100;
+                let compoundColor = 'bg-white';
+                let ringColor = 'border-gray-300';
+                
+                if (stop.compound === 'Soft') {
+                    compoundColor = 'bg-red-500';
+                    ringColor = 'border-red-600';
+                } else if (stop.compound === 'Medium') {
+                    compoundColor = 'bg-yellow-400';
+                    ringColor = 'border-yellow-500';
+                }
+
+                // Alternate label position to prevent overlap
+                const labelPos = index % 2 === 0 ? 'bottom-full mb-2' : 'top-full mt-2';
+
+                html += `
+                <div class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center" style="left: ${pct}%">
+                    <div class="text-[10px] md:text-xs text-gray-300 mb-2 font-mono whitespace-nowrap absolute ${labelPos} bg-black/50 px-1.5 py-0.5 rounded backdrop-blur-sm">Lap ${stop.lap}</div>
+                    <div class="w-4 h-4 md:w-5 md:h-5 rounded-full border-[3px] border-[#1F1F27] ${compoundColor} ring-2 ${ringColor} z-10 shadow-[0_0_10px_rgba(0,0,0,0.8)]" title="${stop.compound}"></div>
+                </div>`;
+            });
+            
+            html += '</div>';
+            html += '<div class="flex justify-between text-[10px] text-gray-500 font-bold uppercase mt-2"><span class="flex items-center gap-1"><i class="fa-solid fa-flag text-white/50"></i> Start</span><span class="flex items-center gap-1">Finish (Lap ' + strategy.totalLaps + ') <i class="fa-solid fa-flag-checkered text-white/50"></i></span></div>';
+            
+            container.innerHTML = html;
+            document.getElementById('strategy-winner').innerText = strategy.winner;
+        }
+
+        function renderTable(winners) {
+            const tbody = document.getElementById('winners-tbody');
+            tbody.innerHTML = '';
+            
+            winners.forEach((w, idx) => {
+                const isFirst = idx === 0;
+                const badgeStyle = `background-color: ${w.color}33; color: ${w.color}; border-color: ${w.color}4D;`;
+                
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-800 hover:bg-gray-800/50 transition duration-150";
+                tr.innerHTML = `
+                    <td class="p-3 md:p-4 font-bold ${isFirst ? 'text-f1-red' : (idx > 3 ? 'text-gray-500' : '')}">${w.year}</td>
+                    <td class="p-3 md:p-4 text-white font-semibold">${w.driver}</td>
+                    <td class="p-3 md:p-4">
+                        <span style="${badgeStyle}" class="px-2 py-1 rounded border text-[10px] md:text-xs font-bold uppercase tracking-wider">${w.team}</span>
+                    </td>
+                    <td class="p-3 md:p-4 text-right font-mono text-gray-400">${w.time}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- Time Functions ---
+        function startCountdown(targetTimestamp) {
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            function update() {
+                const now = new Date().getTime();
+                const distance = targetTimestamp - now;
+
+                if (distance < 0) {
+                    document.getElementById('cd-days').innerText = "00";
+                    document.getElementById('cd-hours').innerText = "00";
+                    document.getElementById('cd-minutes').innerText = "00";
+                    document.getElementById('cd-seconds').innerText = "00";
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById('cd-days').innerText = String(days).padStart(2, '0');
+                document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
+                document.getElementById('cd-minutes').innerText = String(minutes).padStart(2, '0');
+                document.getElementById('cd-seconds').innerText = String(seconds).padStart(2, '0');
+            }
+
+            countdownInterval = setInterval(update, 1000);
+            update();
+        }
+    </script>
+</body>
+</html>
