@@ -27,7 +27,7 @@
     <link rel="icon" href="f1.png">
     
     <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Titillium Web (Matches official F1 font closely) -->
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,300;0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
     <!-- FontAwesome for icons -->
@@ -107,6 +107,11 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
+
+        /* Lights Out Game Animations */
+        .f1-light {
+            transition: all 0.1s ease;
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col relative">
@@ -124,17 +129,17 @@
             <!-- Top Row: App Logo & Name -->
             <div class="flex items-center gap-4 shrink-0">
                 <!-- App Icon size increased by 1.5x (h-[72px]) -->
-                <img src="f1.png" alt="F1 App Icon" class="h-14 md:h-[72px] w-auto object-contain">
-                <span class="font-black text-2xl md:text-3xl tracking-wider">F1 2026 <span class="font-light">R1-R6</span></span>
+                <img src="f1.png" alt="F1 App Icon" class="h-10 md:h-[72px] w-auto object-contain">
+                <span class="font-black text-xl md:text-3xl tracking-wider">F1 2026 <span class="font-light">R1-R6</span></span>
             </div>
             <!-- Bottom Row: Scrollable Tab Navigation -->
             <div class="w-full flex overflow-x-auto hide-scrollbar space-x-2 md:space-x-3 text-xs md:text-sm font-semibold tracking-wide uppercase items-center pb-1">
-                <button onclick="selectTab('australia', this)" class="gp-tab active-tab bg-f1-red text-white px-3 py-2 md:px-4 rounded-md shadow-lg transition whitespace-nowrap">R1: AUS <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Mar 6-8)</span></button>
-                <button onclick="selectTab('china', this)" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R2: CHN <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Mar 13-15)</span></button>
-                <button onclick="selectTab('japan', this)" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R3: JPN <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Mar 27-29)</span></button>
-                <button onclick="selectTab('bahrain', this)" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R4: BHR <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Apr 10-12)</span></button>
-                <button onclick="selectTab('saudi', this)" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R5: SAU <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Apr 17-19)</span></button>
-                <button onclick="selectTab('miami', this)" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R6: MIA <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(May 1-3)</span></button>
+                <button data-target="australia" onclick="selectTab('australia')" class="gp-tab active-tab bg-f1-red text-white px-3 py-2 md:px-4 rounded-md shadow-lg transition whitespace-nowrap">R1: AUS <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Mar 6-8)</span></button>
+                <button data-target="china" onclick="selectTab('china')" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R2: CHN <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Mar 13-15)</span></button>
+                <button data-target="japan" onclick="selectTab('japan')" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R3: JPN <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Mar 27-29)</span></button>
+                <button data-target="bahrain" onclick="selectTab('bahrain')" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R4: BHR <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Apr 10-12)</span></button>
+                <button data-target="saudi" onclick="selectTab('saudi')" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R5: SAU <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(Apr 17-19)</span></button>
+                <button data-target="miami" onclick="selectTab('miami')" class="gp-tab text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 md:px-4 rounded-md transition whitespace-nowrap">R6: MIA <span class="text-[10px] md:text-xs font-normal ml-1 hidden sm:inline">(May 1-3)</span></button>
             </div>
         </div>
     </nav>
@@ -152,37 +157,37 @@
             <div class="p-6 md:p-8 lg:p-12 w-full lg:w-2/3 relative z-20 flex flex-col justify-center">
                 <div id="hero-round" class="inline-block px-3 py-1 bg-white text-black font-bold text-xs rounded mb-4 tracking-widest uppercase shadow-lg shadow-white/10 w-max">Round 1</div>
                 <h1 id="hero-title" class="text-4xl md:text-5xl lg:text-7xl font-black italic mb-2 tracking-tight uppercase drop-shadow-2xl text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 leading-tight">Australian Grand Prix</h1>
-                <p id="hero-loc" class="text-lg md:text-xl text-gray-300 font-semibold mb-6 drop-shadow-md">Albert Park, Melbourne &bull; 06 - 08 MAR 2026</p>
+                <p id="hero-loc" class="text-base md:text-xl text-gray-300 font-semibold mb-6 drop-shadow-md">Albert Park, Melbourne &bull; 06 - 08 MAR 2026</p>
                 
                 <!-- Time & Dynamic Car Emoji Container (Responsive flexbox) -->
                 <div class="flex flex-col sm:flex-row items-center sm:items-end gap-6 md:gap-8 text-center relative z-20 mt-4">
                     <div class="flex flex-wrap justify-center sm:justify-start gap-2 md:gap-4">
-                        <div class="glass-panel px-4 py-3 md:px-5 md:py-4 rounded-xl min-w-[75px] md:min-w-[90px]">
-                            <div id="cd-days" class="text-3xl md:text-4xl font-black text-f1-red drop-shadow-md">00</div>
+                        <div class="glass-panel px-4 py-3 md:px-5 md:py-4 rounded-xl min-w-[70px] md:min-w-[90px]">
+                            <div id="cd-days" class="text-2xl md:text-4xl font-black text-f1-red drop-shadow-md">00</div>
                             <div class="text-[10px] md:text-xs text-gray-300 uppercase tracking-widest mt-1 font-semibold">Days</div>
                         </div>
-                        <div class="glass-panel px-4 py-3 md:px-5 md:py-4 rounded-xl min-w-[75px] md:min-w-[90px]">
-                            <div id="cd-hours" class="text-3xl md:text-4xl font-black text-white drop-shadow-md">00</div>
+                        <div class="glass-panel px-4 py-3 md:px-5 md:py-4 rounded-xl min-w-[70px] md:min-w-[90px]">
+                            <div id="cd-hours" class="text-2xl md:text-4xl font-black text-white drop-shadow-md">00</div>
                             <div class="text-[10px] md:text-xs text-gray-300 uppercase tracking-widest mt-1 font-semibold">Hrs</div>
                         </div>
-                        <div class="glass-panel px-4 py-3 md:px-5 md:py-4 rounded-xl min-w-[75px] md:min-w-[90px]">
-                            <div id="cd-minutes" class="text-3xl md:text-4xl font-black text-white drop-shadow-md">00</div>
+                        <div class="glass-panel px-4 py-3 md:px-5 md:py-4 rounded-xl min-w-[70px] md:min-w-[90px]">
+                            <div id="cd-minutes" class="text-2xl md:text-4xl font-black text-white drop-shadow-md">00</div>
                             <div class="text-[10px] md:text-xs text-gray-300 uppercase tracking-widest mt-1 font-semibold">Mins</div>
                         </div>
-                        <div class="glass-panel px-4 py-3 md:px-5 md:py-4 rounded-xl min-w-[75px] md:min-w-[90px]">
-                            <div id="cd-seconds" class="text-3xl md:text-4xl font-black text-white drop-shadow-md">00</div>
+                        <div class="glass-panel px-4 py-3 md:px-5 md:py-4 rounded-xl min-w-[70px] md:min-w-[90px]">
+                            <div id="cd-seconds" class="text-2xl md:text-4xl font-black text-white drop-shadow-md">00</div>
                             <div class="text-[10px] md:text-xs text-gray-300 uppercase tracking-widest mt-1 font-semibold">Secs</div>
                         </div>
                     </div>
                     
                     <!-- Car Emoji: Scaled 2x and flipped to point right -->
-                    <div id="hero-car-emoji" class="text-[6rem] md:text-[7.5rem] leading-none drop-shadow-lg transition-all duration-1000 -scale-x-100 transform" style="filter: hue-rotate(0deg);">🏎️</div>
+                    <div id="hero-car-emoji" class="text-[5rem] sm:text-[6rem] md:text-[7.5rem] leading-none drop-shadow-lg transition-all duration-1000 -scale-x-100 transform" style="filter: hue-rotate(0deg);">🏎️</div>
                 </div>
             </div>
             
-            <!-- High-Tech Track Image Container (Visible on mobile properly beneath text, absolute on desktop) -->
+            <!-- High-Tech Track Image Container -->
             <div id="hero-track-container" class="flex flex-col w-full lg:w-1/3 relative lg:absolute lg:right-10 lg:top-1/2 lg:-translate-y-1/2 items-center justify-center p-6 lg:p-8 opacity-90 z-20 drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] cursor-pointer hover:scale-105 transition-transform duration-300" onclick="openModal()" title="Click to expand circuit">
-                <span class="text-xs font-bold uppercase tracking-widest text-f1-red mb-4 bg-black/50 px-3 py-1.5 rounded backdrop-blur-sm animate-pulse"><i class="fa-solid fa-magnifying-glass mr-1"></i> Expand Circuit</span>
+                <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest text-f1-red mb-4 bg-black/50 px-3 py-1.5 rounded backdrop-blur-sm animate-pulse"><i class="fa-solid fa-magnifying-glass mr-1"></i> Expand Circuit</span>
                 <div id="track-img-wrapper" class="w-full flex justify-center"></div>
             </div>
         </section>
@@ -376,17 +381,44 @@
                     <h3 class="text-lg font-bold mb-1 tracking-wide uppercase text-gray-300"><i class="fa-solid fa-route mr-2 text-f1-red"></i> Winning Pit Strategy</h3>
                     <p class="text-xs md:text-sm text-gray-500 mb-2">Previous winning tire timeline executed by <span id="strategy-winner" class="text-white font-bold">--</span></p>
                 </div>
-                <div id="strategy-container" class="w-full flex-grow flex flex-col justify-center px-4 py-8">
+                <div id="strategy-container" class="w-full flex-grow flex flex-col justify-center px-4 py-8 overflow-x-auto hide-scrollbar">
                     <!-- Timeline injected by JS -->
                 </div>
                 <!-- Legend -->
-                <div class="flex justify-center gap-4 mt-4 pt-4 border-t border-f1-gray">
-                    <div class="flex items-center gap-1.5 text-xs text-gray-400"><div class="w-3 h-3 rounded-full bg-red-500 ring-1 ring-red-500/50"></div> Soft</div>
-                    <div class="flex items-center gap-1.5 text-xs text-gray-400"><div class="w-3 h-3 rounded-full bg-yellow-400 ring-1 ring-yellow-400/50"></div> Medium</div>
-                    <div class="flex items-center gap-1.5 text-xs text-gray-400"><div class="w-3 h-3 rounded-full border bg-white ring-1 ring-white/50"></div> Hard</div>
+                <div class="flex justify-center gap-4 mt-4 pt-4 border-t border-f1-gray shrink-0">
+                    <div class="flex items-center gap-1.5 text-[10px] md:text-xs text-gray-400"><div class="w-3 h-3 rounded-full bg-red-500 ring-1 ring-red-500/50"></div> Soft</div>
+                    <div class="flex items-center gap-1.5 text-[10px] md:text-xs text-gray-400"><div class="w-3 h-3 rounded-full bg-yellow-400 ring-1 ring-yellow-400/50"></div> Medium</div>
+                    <div class="flex items-center gap-1.5 text-[10px] md:text-xs text-gray-400"><div class="w-3 h-3 rounded-full border bg-white ring-1 ring-white/50"></div> Hard</div>
                 </div>
             </div>
             
+        </section>
+
+        <!-- Fan Zone: Lights Out Reaction Game -->
+        <h2 id="fanzone" class="text-2xl font-bold mb-6 border-l-4 border-f1-red pl-3 uppercase tracking-wide mt-12">Fan Zone: Lights Out</h2>
+        <section class="mb-12">
+            <div id="reaction-box" onclick="handleReactionBoxClick()" class="bg-f1-card rounded-xl p-6 md:p-8 border border-f1-gray shadow-lg flex flex-col items-center justify-center text-center cursor-pointer hover:border-f1-red/50 transition-colors">
+                <h3 class="text-xl md:text-2xl font-bold text-white mb-1 uppercase tracking-wide">Test Your Reflexes</h3>
+                <p class="text-xs md:text-sm text-gray-400 mb-6">Tap <span class="text-f1-red font-bold">ANYWHERE</span> in this box as soon as the lights go out!</p>
+                
+                <!-- The 5 Red Lights -->
+                <div class="flex gap-2 md:gap-4 mb-6 bg-black/50 p-3 md:p-4 rounded-2xl border border-white/5 shadow-inner">
+                    <div class="f1-light w-8 h-8 md:w-12 md:h-12 rounded-full bg-red-900/30 ring-1 ring-red-500/20"></div>
+                    <div class="f1-light w-8 h-8 md:w-12 md:h-12 rounded-full bg-red-900/30 ring-1 ring-red-500/20"></div>
+                    <div class="f1-light w-8 h-8 md:w-12 md:h-12 rounded-full bg-red-900/30 ring-1 ring-red-500/20"></div>
+                    <div class="f1-light w-8 h-8 md:w-12 md:h-12 rounded-full bg-red-900/30 ring-1 ring-red-500/20"></div>
+                    <div class="f1-light w-8 h-8 md:w-12 md:h-12 rounded-full bg-red-900/30 ring-1 ring-red-500/20"></div>
+                </div>
+                
+                <button id="reaction-btn" onclick="startReactionSequence(event)" class="px-8 py-3 bg-white text-black text-sm md:text-base font-black uppercase tracking-widest rounded shadow-lg hover:bg-gray-200 transition min-w-[200px] z-10 relative">Start Sequence</button>
+                <div id="reaction-result" class="text-3xl md:text-5xl font-black text-f1-red hidden mt-2">0.000s</div>
+                <div id="reaction-msg" class="text-xs md:text-sm font-semibold text-gray-400 mt-2 hidden"></div>
+                
+                <!-- Driver Benchmark -->
+                <div class="mt-6 pt-4 border-t border-white/10 w-full max-w-md pointer-events-none">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest"><i class="fa-solid fa-stopwatch text-gray-400 mr-1"></i> Average F1 Driver Reaction: <span class="text-white font-bold">~0.200s</span></p>
+                </div>
+            </div>
         </section>
 
     </main>
@@ -808,6 +840,12 @@
         let speedTrapChartInstance = null;
         let countdownInterval = null;
 
+        // Game State
+        let reactionState = 'idle'; // idle, waiting, ready
+        let reactionStartTime = 0;
+        let reactionTimeout = null;
+        let lightTimeouts = [];
+
         // F1 Team Colors Registry
         const teamColorsRegistry = {
             'Ferrari': '#DC0000',
@@ -826,25 +864,38 @@
             Chart.defaults.color = '#a0a0a5';
             Chart.defaults.font.family = '"Titillium Web", sans-serif';
 
-            // Load initial GP (Australia)
-            loadGP('australia');
+            // Hash Routing Initialization
+            window.addEventListener('hashchange', handleHashChange);
+            handleHashChange(); // Load initial based on URL hash
         });
         
-        // === Navigation Function ===
-        function selectTab(gpId, element) {
-            // Reset styles for all tabs
+        // === URL Hash Routing & Navigation Function ===
+        function handleHashChange() {
+            let hash = window.location.hash.substring(1);
+            if (!hash || !gpData[hash]) {
+                hash = 'australia'; // Default fallback
+            }
+            
+            // Update Active Tab styles
             const tabs = document.querySelectorAll('.gp-tab');
             tabs.forEach(tab => {
                 tab.classList.remove('bg-f1-red', 'text-white', 'active-tab', 'shadow-lg');
                 tab.classList.add('text-gray-300', 'hover:bg-white/10');
             });
             
-            // Add active styles to clicked tab
-            element.classList.remove('text-gray-300', 'hover:bg-white/10');
-            element.classList.add('bg-f1-red', 'text-white', 'active-tab', 'shadow-lg');
+            const activeBtn = document.querySelector(`.gp-tab[data-target="${hash}"]`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-300', 'hover:bg-white/10');
+                activeBtn.classList.add('bg-f1-red', 'text-white', 'active-tab', 'shadow-lg');
+            }
             
-            // Load the GP data
-            loadGP(gpId);
+            // Load the GP Data
+            loadGP(hash);
+        }
+
+        function selectTab(gpId) {
+            // Update the URL hash to trigger the change and allow shareable links
+            window.location.hash = gpId;
         }
 
         // === Core Render Logic ===
@@ -941,6 +992,105 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
             }, 300); // Wait for transition
+        }
+
+        // --- Fan Zone Game Logic ---
+        function handleReactionBoxClick() {
+            if (reactionState === 'waiting' || reactionState === 'ready') {
+                processReaction();
+            }
+        }
+
+        function startReactionSequence(e) {
+            // Prevent the box click from processing the immediate click as a reaction
+            if (e) e.stopPropagation();
+
+            if (reactionState === 'idle') {
+                const btn = document.getElementById('reaction-btn');
+                const result = document.getElementById('reaction-result');
+                const msg = document.getElementById('reaction-msg');
+                const lights = document.querySelectorAll('.f1-light');
+
+                // Reset State
+                result.classList.add('hidden');
+                msg.classList.add('hidden');
+                lights.forEach(l => {
+                    l.className = 'f1-light w-8 h-8 md:w-12 md:h-12 rounded-full bg-red-900/30 ring-1 ring-red-500/20';
+                });
+                
+                btn.innerText = "Wait for it...";
+                btn.classList.add('bg-yellow-500', 'text-black', 'hover:bg-yellow-400');
+                btn.classList.remove('bg-white', 'hover:bg-gray-200', 'bg-f1-red', 'text-white');
+                reactionState = 'waiting';
+                
+                // Turn on lights sequentially
+                for(let i = 0; i < 5; i++) {
+                    lightTimeouts.push(setTimeout(() => {
+                        lights[i].classList.remove('bg-red-900/30', 'ring-red-500/20');
+                        lights[i].classList.add('bg-red-600', 'shadow-[0_0_20px_rgba(220,38,38,0.9)]');
+                    }, (i + 1) * 1000));
+                }
+
+                // Random "Lights Out" interval after all 5 are on
+                const randomDelay = 5000 + (Math.random() * 3000); // 5 to 8 seconds total
+                reactionTimeout = setTimeout(() => {
+                    lights.forEach(l => {
+                        l.classList.remove('bg-red-600', 'shadow-[0_0_20px_rgba(220,38,38,0.9)]');
+                        l.classList.add('bg-red-900/30', 'ring-red-500/20');
+                    });
+                    reactionState = 'ready';
+                    reactionStartTime = performance.now();
+                    
+                    btn.innerText = "TAP NOW!";
+                    btn.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+                    btn.classList.add('bg-f1-red', 'text-white', 'hover:bg-red-700');
+                }, randomDelay);
+            } else {
+                // User clicked button while game was running
+                processReaction();
+            }
+        }
+
+        function processReaction() {
+            const btn = document.getElementById('reaction-btn');
+            const result = document.getElementById('reaction-result');
+            const msg = document.getElementById('reaction-msg');
+            const lights = document.querySelectorAll('.f1-light');
+
+            if (reactionState === 'waiting') {
+                // User clicked too early
+                clearGameTimeouts();
+                btn.innerText = "Jump Start! Try Again";
+                btn.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+                btn.classList.add('bg-white', 'text-black', 'hover:bg-gray-200');
+                reactionState = 'idle';
+                lights.forEach(l => {
+                    l.className = 'f1-light w-8 h-8 md:w-12 md:h-12 rounded-full bg-red-900/30 ring-1 ring-red-500/20';
+                });
+                
+            } else if (reactionState === 'ready') {
+                // Successful reaction registered
+                const reactionTime = (performance.now() - reactionStartTime) / 1000;
+                result.innerText = reactionTime.toFixed(3) + "s";
+                result.classList.remove('hidden');
+                
+                msg.classList.remove('hidden');
+                if (reactionTime < 0.2) msg.innerText = "Are you Max Verstappen?! Incredible reflex!";
+                else if (reactionTime <= 0.25) msg.innerText = "Spot on! True F1 driver reaction time!";
+                else if (reactionTime < 0.35) msg.innerText = "Solid, but you lost a place off the line.";
+                else msg.innerText = "You stalled on the grid! Too slow!";
+
+                btn.innerText = "Try Again";
+                btn.classList.remove('bg-f1-red', 'text-white', 'hover:bg-red-700');
+                btn.classList.add('bg-white', 'text-black', 'hover:bg-gray-200');
+                reactionState = 'idle';
+            }
+        }
+
+        function clearGameTimeouts() {
+            if (reactionTimeout) clearTimeout(reactionTimeout);
+            lightTimeouts.forEach(t => clearTimeout(t));
+            lightTimeouts = [];
         }
 
         // --- Chart Renderers ---
@@ -1287,5 +1437,9 @@
             update();
         }
     </script>
+
+    <script>window.va=window.va||function(){(window.va.q=window.va.q||[]).push(arguments)};</script><script src="/_vercel/insights/script.js"></script>
+	<script>window.si=window.si||function(){(window.siq=window.siq||[]).push(arguments)};</script><script src="/_vercel/speed-insights/script.js"></script>	
+    
 </body>
 </html>
